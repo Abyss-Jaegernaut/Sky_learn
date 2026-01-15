@@ -1,6 +1,37 @@
 from django import forms
-from .models import Program, Course, Post
+from .models import Program, Course, Post, Assignment, Submission, Session
 from utilisateur.models import Utilisateur
+
+class SessionForm(forms.ModelForm):
+    class Meta:
+        model = Session
+        fields = ['session', 'is_current_session', 'next_session_beginning']
+        widgets = {
+            'next_session_beginning': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+class AssignmentForm(forms.ModelForm):
+    due_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        required=False,
+        label="Date limite"
+    )
+    class Meta:
+        model = Assignment
+        fields = ['title', 'description', 'due_date']
+
+class SubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['file', 'comment']
+
+class GradeSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = ['grade', 'feedback']
+    
+    grade = forms.FloatField(max_value=100, min_value=0, label="Note (/100)")
+    feedback = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), required=False)
 
 class ProgramForm(forms.ModelForm):
     class Meta:
@@ -47,3 +78,15 @@ class LecturerAddForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class StudentEditForm(forms.ModelForm):
+    """Formulaire pour éditer un étudiant (sans mot de passe obligatoire)"""
+    class Meta:
+        model = Utilisateur
+        fields = ['username', 'first_name', 'last_name', 'email', 'gender', 'phone', 'address', 'program', 'level', 'picture']
+
+class LecturerEditForm(forms.ModelForm):
+    """Formulaire pour éditer un instructeur (sans mot de passe obligatoire)"""
+    class Meta:
+        model = Utilisateur
+        fields = ['username', 'first_name', 'last_name', 'email', 'gender', 'phone', 'address', 'picture']

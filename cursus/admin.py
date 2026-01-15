@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Module, Lesson, certificat, Projet, Post, Enrollment, Program, Session, Semester
+from .models import Course, Module, Lesson, certificat, Projet, Post, Enrollment, Program, Session, Semester, Quiz, Question, Choice, QuizAttempt, Assignment, Submission
 
 @admin.register(Program)
 class ProgramAdmin(admin.ModelAdmin):
@@ -55,3 +55,32 @@ class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ('student', 'course', 'date_enrolled')
     list_filter = ('course', 'student')
     search_fields = ('student__username', 'course__titre')
+
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+    extra = 3
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    inlines = [ChoiceInline]
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    list_display = ('title', 'course', 'created_at')
+
+@admin.register(QuizAttempt)
+class QuizAttemptAdmin(admin.ModelAdmin):
+    list_display = ('student', 'quiz', 'score', 'date_attempted')
+    list_filter = ('quiz', 'student')
+
+@admin.register(Assignment)
+class AssignmentAdmin(admin.ModelAdmin):
+    list_display = ('title', 'course', 'due_date')
+    list_filter = ('course',)
+
+@admin.register(Submission)
+class SubmissionAdmin(admin.ModelAdmin):
+    list_display = ('student', 'assignment', 'grade', 'date_submitted')
+    list_filter = ('assignment', 'student')
+
+admin.site.register(Choice)

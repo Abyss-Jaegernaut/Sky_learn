@@ -77,6 +77,12 @@ class Course(models.Model):
     def get_absolute_url(self):
         return reverse('course_single', kwargs={'slug': self.slug})
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.titre)
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Cours"
         verbose_name_plural = "Cours"
@@ -166,3 +172,77 @@ class certificat(models.Model):
         ordering = ['id']
         verbose_name = "Certificat"
         verbose_name_plural = "Certificats"
+
+class Quiz(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Cours")
+    title = models.CharField(max_length=200, verbose_name="Titre du Quiz")
+    description = models.TextField(verbose_name="Description")
+    slug = models.SlugField(unique=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Quiz"
+        verbose_name_plural = "Quizzes"
+
+class Question(models.Model):
+    quiz = models.ForeignKey(Quiz, related_name='questions', on_delete=models.CASCADE)
+    text = models.CharField(max_length=500, verbose_name="Question")
+    
+    def __str__(self):
+        return self.text
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
+    text = models.CharField(max_length=200, verbose_name="Choix")
+    is_correct = models.BooleanField(default=False, verbose_name="Est correct")
+
+    def __str__(self):
+        return self.text
+
+class QuizAttempt(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
+    student = models.ForeignKey('utilisateur.Utilisateur', on_delete=models.CASCADE, related_name='quiz_attempts')
+    score = models.FloatField(verbose_name="Score obtenu")
+    date_attempted = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.username} - {self.quiz.title} - {self.score}"
+
+class Assignment(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='assignments', verbose_name="Cours")
+    title = models.CharField(max_length=200, verbose_name="Titre du projet")
+    description = models.TextField(verbose_name="Description")
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name="Date limite")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = "Devoir/Projet"
+        verbose_name_plural = "Devoirs/Projets"
+
+class Submission(models.Model):
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions', verbose_name="Devoir")
+    student = models.ForeignKey('utilisateur.Utilisateur', on_delete=models.CASCADE, related_name='submissions', verbose_name="Étudiant")
+    file = models.FileField(upload_to='assignments/', verbose_name="Fichier rendu")
+    comment = models.TextField(blank=True, verbose_name="Commentaire étudiant")
+    date_submitted = models.DateTimeField(auto_now_add=True)
+    grade = models.FloatField(null=True, blank=True, verbose_name="Note")
+    feedback = models.TextField(blank=True, verbose_name="Feedback instructeur")
+
+    def __str__(self):
+        return f"{self.student.username} - {self.assignment.title}"
+
+    class Meta:
+        verbose_name = "Rendu"
+        verbose_name_plural = "Rendus"

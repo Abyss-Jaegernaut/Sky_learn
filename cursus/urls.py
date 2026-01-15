@@ -55,6 +55,18 @@ urlpatterns = [
     path('quiz-progress/', views.quiz_progress, name='quiz_progress'),
     path('quiz-marking/', views.quiz_marking, name='quiz_marking'),
     path('quiz/<slug:slug>/', views.quiz_index, name='quiz_index'),
+    path('quiz/<slug:slug>/take/<slug:quiz_slug>/', views.take_quiz, name='take_quiz'),
+    
+    # Assignments
+    path('course/<slug:slug>/assignments/', views.assignment_list, name='assignment_list'),
+    path('course/<slug:slug>/assignment/create/', views.assignment_create, name='assignment_create'),
+    path('course/<slug:slug>/assignment/<int:pk>/submit/', views.assignment_submit, name='assignment_submit'),
+    path('course/<slug:slug>/assignment/<int:pk>/grading/', views.assignment_grading, name='assignment_grading'),
+    path('submission/<int:submission_id>/grade/', views.grade_submission_view, name='grade_submission'),
+
+    # Progress
+    path('my-grades/', views.my_grades, name='my_grades'),
+    path('course/<slug:slug>/progress/', views.course_progress_instructor, name='course_progress_instructor'),
 
     path('post/add/', views.add_post, name='add_item'),
     path('post/<int:pk>/edit/', views.edit_post, name='edit_post'),
